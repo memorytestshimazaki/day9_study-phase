@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>単語記憶実験</title>
+
+  <!-- jsPsych -->
+  <script src="https://unpkg.com/jspsych@7.3.4"></script>
+
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <!-- プラグイン -->
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
+
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.3"></script>
+
+  <style>
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: white;
+    }
+
+    /* jsPsych画面全体を中央配置 */
+    .jspsych-display-element {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .center-text {
+      width: 100%;
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+  </style>
+
+</head>
+
+<body></body>
+
+<script>
+
+const jsPsych = initJsPsych();
+const DAY = 9;
+
+let timeline = [];
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbykXLPo7yOkRlGzwbBA8leKtM4_Qqq_wF9uLB9GwVDpDaYfkJb47is2StaHIp-OLpiR/exec";
+
+let participant_id = "";
+let study_start = "";
+timeline.push({
+
+  type: jsPsychSurveyText,
+
+  questions: [
+    {
+      prompt: "ユーザーID（半角数字4桁）を入力してください",
+      required: true
+    }
+  ],
+  
+
+  button_label: "次へ",
+
+  
+
+  on_finish: function(data){
+
+    participant_id = data.response.Q0;
+
+    study_start =
+      new Date().toISOString();
+
+    fetch(GAS_URL, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+
+      body: JSON.stringify({
+
+        type: "study_start",
+
+        participant_id: participant_id,
+
+        day: DAY
+
+      })
+
+    });
+
+  }
+
+});
+
+/* ------------------------
+   教示画面
+------------------------ */
+
+timeline.push({
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+    <div class="center-text"
+         style="font-size:18px; line-height:1.8;">
+      これから単語が1語ずつ表示されます。<br>
+      後ほどテストを行うので、<br>
+      単語をできるだけ多く覚えてください。<br>
+      <b>スクリーンショットやメモは取らず、<br>
+        単語を見て覚えてください。</b><br><br>
+      準備ができたら開始してください。<br><br>
+    </div>
+  `,
+
+  choices: ['開始する']
+
+});
+
+/* ------------------------
+   単語リスト
+------------------------ */
+
+let study_words = [
+"憎悪",
+"心配",
+"無知",
+"落下",
+"悪臭",
+"黄昏",
+"空間",
+"意見",
+"児童",
+"粉砕",
+"完成",
+"魅力",
+"若者",
+"地球",
+"紅葉"
+];
+
+/* ------------------------
+   ランダム化
+------------------------ */
+
+study_words = jsPsych.randomization.shuffle(study_words);
+
+/* ------------------------
+   単語提示フェーズ
+------------------------ */
+
+study_words.forEach(function(word){
+
+  /* 注視点 ＋ */
+
+  timeline.push({
+
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <div class="center-text"
+           style="font-size:80px;">
+        ＋
+      </div>
+    `,
+
+    choices: "NO_KEYS",
+
+    trial_duration: 1000
+
+  });
+
+  /* 単語提示 */
+
+  timeline.push({
+
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <div class="center-text"
+           style="font-size:100px;">
+        ${word}
+      </div>
+    `,
+
+    choices: "NO_KEYS",
+
+    trial_duration: 5000
+
+  });
+
+});
+
+/* ------------------------
+   終了画面
+------------------------ */
+
+timeline.push({
+
+  type: jsPsychHtmlKeyboardResponse,
+
+  stimulus: `
+    <div class="center-text"
+         style="font-size:18px; line-height:1.8;">
+      ご協力ありがとうございました。<br><br>
+      <b>ブラウザの「戻る」操作を行い、<br>
+        前のアンケート画面に戻ってください。</b><br>
+      （戻るボタンやスワイプ操作など、<br>
+      お使いの端末の方法をご利用ください。）<br>  
+      ※ページを閉じたり、×ボタンを押したり<br>
+      しないでください。<br><br>
+      アンケート画面に戻りましたら、<br>
+      「次へ」を押して回答を続けてください。<br>
+    </div>
+  `,
+
+  choices: "NO_KEYS"
+
+});
+
+/* ------------------------
+   実行
+------------------------ */
+
+jsPsych.run(timeline);
+
+</script>
+
+</html>
