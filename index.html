@@ -58,7 +58,7 @@ const DAY = 9;
 
 let timeline = [];
 const GAS_URL =
-"https://script.google.com/macros/s/AKfycbykXLPo7yOkRlGzwbBA8leKtM4_Qqq_wF9uLB9GwVDpDaYfkJb47is2StaHIp-OLpiR/exec";
+"https://script.google.com/macros/s/AKfycbwj995Kx89a03AbUmvUfjdOJRjVGAQKiJvt1zoBC6myGpVMduFg2la6dAoUtqiO1CZy/exec";
 
 let participant_id = "";
 let study_start = "";
@@ -99,7 +99,9 @@ timeline.push({
 
         participant_id: participant_id,
 
-        day: DAY
+        day: DAY,
+
+         word_order:  word_order
 
       })
 
@@ -118,7 +120,7 @@ timeline.push({
   type: jsPsychHtmlButtonResponse,
 
   stimulus: `
-    <div class="center-text"
+   <div class="center-text"
          style="font-size:18px; line-height:1.8;">
       これから単語が1語ずつ表示されます。<br>
       後ほどテストを行うので、<br>
@@ -138,21 +140,22 @@ timeline.push({
 ------------------------ */
 
 let study_words = [
-"憎悪",
-"心配",
-"無知",
-"落下",
-"悪臭",
-"黄昏",
-"空間",
-"意見",
-"児童",
-"粉砕",
-"完成",
-"魅力",
-"若者",
-"地球",
-"紅葉"
+{id: 241, word: "憎悪"},
+{id: 242, word: "心配"},
+{id: 243, word: "無知"},
+{id: 244, word: "落下"},
+{id: 245, word: "悪臭"},
+{id: 246, word: "黄昏"},
+{id: 247, word: "空間"},
+{id: 248, word: "意見"},
+{id: 249, word: "児童"},
+{id: 250, word: "粉砕"},
+{id: 251, word: "完成"},
+{id: 252, word: "魅力"},
+{id: 253, word: "若者"},
+{id: 254, word: "地球"},
+{id: 255, word: "紅葉"}
+
 ];
 
 /* ------------------------
@@ -160,13 +163,16 @@ let study_words = [
 ------------------------ */
 
 study_words = jsPsych.randomization.shuffle(study_words);
-
+const word_order = study_words.map((item, index) => ({
+  serial_position: index + 1,
+  word_id: item.id,
+  word: item.word
+}));
 /* ------------------------
    単語提示フェーズ
 ------------------------ */
 
-study_words.forEach(function(word){
-
+study_words.forEach(function(item, index){
   /* 注視点 ＋ */
 
   timeline.push({
@@ -195,13 +201,18 @@ study_words.forEach(function(word){
     stimulus: `
       <div class="center-text"
            style="font-size:100px;">
-        ${word}
+        ${item.word}
       </div>
     `,
 
     choices: "NO_KEYS",
 
-    trial_duration: 5000
+    trial_duration: 5000,
+     data: {
+      word_id: item.id,
+      word: item.word,
+      serial_position: index + 1
+    }
 
   });
 
